@@ -3,3 +3,5 @@
 *.html
 eda_files/
 renv/
+env/
+model_files/
