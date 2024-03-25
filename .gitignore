@@ -8,3 +8,4 @@ model_files/
 data/*
 model.ipynb
 my-db.duckdb
+.Rhistory
