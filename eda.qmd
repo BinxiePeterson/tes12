@@ -11,31 +11,63 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 
 ## Penguin Size and Mass by Sex and Species
 
+## Load libraries
+
 ```{r}
 library(palmerpenguins)
 library(dplyr)
 library(ggplot2)
-
-df <- palmerpenguins::penguins
 ```
 
+## Write a table into a DuckDB table
+
 ```{r}
+# Make a persistent DB and store the connection in a variable.
+con <- DBI::dbConnect(
+  duckdb::duckdb(),
+  dbdir = "my-db.duckdb"
+  )
+
+# Write an R dataframe (penguins) into a DuckDB table. 
+DBI::dbWriteTable(conn = con,
+                  name = "penguins",
+                  value = palmerpenguins::penguins,
+                  overwrite = TRUE)
+```
+
+## Query data in the database
+
+```{r}
+library(dbplyr)
+
+# Query the data in the database.
+df <- dplyr::tbl(con, "penguins")
+
+# Summarise the data and extract (collect) the data as a dataframe.
 df %>%
   group_by(species, sex) %>%
   summarise(
     across(
-      where(is.numeric), 
+        ends_with("mm") | ends_with("g"),
       \(x) mean(x, na.rm = TRUE)
       )
     ) %>%
+  dplyr::collect() %>%
   knitr::kable()
 ```
 
-## Penguin Size vs Mass by Species
+## Penguin bill length vs mass by species
 
 ```{r}
 df %>%
   ggplot(aes(x = bill_length_mm, y = body_mass_g, color = species)) +
   geom_point() + 
   geom_smooth(method = "lm")
+```
+
+## Disconnect from the database
+
+```{r}
+# Disconnect from the database.
+DBI::dbDisconnect(con, shutdown = TRUE)
 ```
