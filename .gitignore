@@ -5,3 +5,6 @@ eda_files/
 renv/
 env/
 model_files/
+data/*
+model.ipynb
+my-db.duckdb
